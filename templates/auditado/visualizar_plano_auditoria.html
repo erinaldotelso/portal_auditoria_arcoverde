@@ -1,0 +1,36 @@
+{% extends "base_auditado.html" %}
+
+{% block title %}Plano de Auditoria - Portal do Auditor{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-calendar-alt me-1"></i> Planos de Auditoria</h3>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Secretaria</th>
+                        <th>Data de Envio</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for documento in documentos if documento.tipo_documento == 'Plano de Auditoria' %}
+                        <tr>
+                            <td>{{ documento.secretaria }}</td>
+                            <td>{{ documento.data_envio.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                            <td class="text-center">
+                                <!-- Botão para visualizar o arquivo original em uma nova aba -->
+                                <a href="{{ url_for('visualizar_documento', filename=documento.arquivo) }}" target="_blank" class="btn btn-info btn-sm">Visualizar</a>                                
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

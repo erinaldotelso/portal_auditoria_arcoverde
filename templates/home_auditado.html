@@ -1,0 +1,46 @@
+{% extends 'base_auditado.html' %}
+
+{% block title %}Home - Portal do Auditados{% endblock %}
+
+{% block content %}
+    <h1><i class="fas fa-home me-2"></i>Home</h1>
+    <p>Bem-vindo ao Portal de Auditoria. Aqui você pode acessar seus documentos, pedidos e relatórios.</p>
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-question-circle me-1"></i>Pedido de Informação</h5>
+                    <p class="card-text">Visualize informações solicitadas.</p>
+                    <a href="{{ url_for('visualizar_pedido_informacao') }}" class="btn btn-primary">Acessar</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-calendar-alt me-1"></i>Plano de Auditoria</h5>
+                    <p class="card-text">Visualize os planos de auditoria.</p>
+                    <a href="{{ url_for('visualizar_plano_auditoria') }}" class="btn btn-primary">Acessar</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-file-alt me-1"></i>Nota Técnica</h5>
+                    <p class="card-text">Visualize notas técnicas disponíveis.</p>
+                    <a href="{{ url_for('visualizar_nota_tecnica') }}" class="btn btn-primary">Acessar</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-file-invoice me-1"></i>Relatórios Finais</h5>
+                    <p class="card-text">Visualize e gerencie seus relatórios.</p>
+                    <a href="{{ url_for('visualizar_relatorios_finais') }}" class="btn btn-primary">Acessar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

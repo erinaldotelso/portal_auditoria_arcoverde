@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Pedido de Informações{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-file-alt me-1"></i> Cadastrar Pedido de Informação</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('cadastrar') }}" enctype="multipart/form-data" class="mb-4">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="orgao" class="form-label">Órgão:</label>
+                        <select id="orgao" name="orgao" class="form-select" required>
+                            <option value="" disabled selected>Selecione um órgão</option>
+                            {% for unidade in unidades %}
+                                <option value="{{ unidade[0] }}">{{ unidade[1] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="processo" class="form-label">Processo:</label>
+                        <input type="text" id="processo" name="processo" class="form-control" required>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="data_envio" class="form-label">Data de Envio:</label>
+                        <input type="date" id="data_envio" name="data_envio" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="prazo" class="form-label">Prazo em Dias:</label>
+                        <input type="number" id="prazo" name="prazo" class="form-control" required>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="arquivo" class="form-label">Anexar Arquivo:</label>
+                        <input type="file" id="arquivo" name="arquivo" class="form-control">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Cadastrar</button>
+            </form>
+
+            <h2>Registro de Pedidos de Informações</h2>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Órgão</th>
+                            <th>Processo</th>
+                            <th>Data de Envio</th>
+                            <th>Prazo em Dias</th>
+                            <th>Status</th>
+                            <th>Data de Resposta</th>
+                            <th>Dias</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pedido in pedidos %}
+                        <tr>
+                            <td>{{ pedido['id'] }}</td>
+                            <td>{{ pedido['orgao'] }}</td>
+                            <td>{{ pedido['processo'] }}</td>
+                            <td>{{ pedido['data_envio'].strftime('%d/%m/%Y') }}</td>
+                            <td>{{ pedido['prazo'] }}</td>
+                            <td class="{% if pedido['status'] == 'Respondido' %}status-respondido{% else %}status-pendente{% endif %}">
+                                {{ pedido['status'] }}
+                            </td>
+                            <td>
+                                {% if pedido['data_resposta'] %}
+                                    {{ pedido['data_resposta'].strftime('%d/%m/%Y') }}
+                                {% else %}
+                                    <form method="POST" action="{{ url_for('responder', id=pedido['id']) }}" style="display: inline;">
+                                        <input type="date" name="data_resposta" required>
+                                        <button type="submit" class="btn btn-success btn-sm">Salvar</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if pedido['data_envio'] and pedido['data_resposta'] %}
+                                    {{ (pedido['data_resposta'] - pedido['data_envio']).days }}
+                                {% else %}
+                                    {% if pedido['data_envio'] %}
+                                        {{ (current_date - pedido['data_envio']).days }}
+                                    {% else %}
+                                        0
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td class="d-flex justify-content-center align-items-center">
+                                <!-- Ícone de Visualizar -->
+                                <a href="{{ url_for('visualizar_pedido', id=pedido['id']) }}" class="btn btn-info btn-sm me-2">
+                                    <i class="fas fa-eye"></i> <!-- Ícone de visualização -->
+                                </a>
+                                <!-- Ícone de Editar -->
+                                <a href="{{ url_for('editar_pedido', id=pedido['id']) }}" class="btn btn-warning btn-sm me-2">
+                                    <i class="fas fa-edit"></i> <!-- Ícone de edição -->
+                                </a>
+                                
+                                <!-- Ícone de Excluir -->
+                                <form method="POST" action="{{ url_for('excluir_pedido', id=pedido['id']) }}" style="display: inline;">
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir?');">
+                                        <i class="fas fa-trash-alt"></i> <!-- Ícone de exclusão -->
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Plano de Auditoria{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3>Editar Plano de Auditoria</h3>
+    <form action="{{ url_for('editar_plano', id=plano.id) }}" method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="numero_auditoria" class="form-label">N.º Auditoria</label>
+            <select class="form-select" name="numero_auditoria" required>
+                <option value="" disabled selected>Selecione um número de auditoria</option>
+                {% for auditoria in auditorias %}
+                <option value="{{ auditoria.numero_auditoria }}" {% if auditoria.numero_auditoria == plano.numero_auditoria %}selected{% endif %}>
+                    {{ auditoria.numero_auditoria }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="area" class="form-label">Área</label>
+            <input type="text" class="form-control" name="area" value="{{ plano.area }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="descricao" class="form-label">Descrição</label>
+            <input type="text" class="form-control" name="descricao" value="{{ plano.descricao }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="data" class="form-label">Data</label>
+            <input type="date" class="form-control" name="data" value="{{ plano.data.strftime('%Y-%m-%d') }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="arquivo" class="form-label">Anexar Novo Arquivo</label>
+            <input type="file" class="form-control" name="arquivo" accept=".pdf, .doc, .docx, .xls, .xlsx">
+        </div>
+        <div class="d-flex justify-content-between">
+            <!-- Botão Salvar Alterações -->
+            <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+
+            <!-- Botão Cancelar, que redireciona para a página de Plano de Auditoria -->
+            <a href="{{ url_for('plano_de_auditoria') }}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

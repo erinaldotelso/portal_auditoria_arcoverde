@@ -1,0 +1,38 @@
+{% extends "base_auditado.html" %}
+
+{% block title %}Nota Técnica - Portal do Auditor{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-file-alt me-1"></i> Notas Técnicas</h3>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Secretaria</th>
+                        <th>Data de Envio</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for documento in documentos if documento.tipo_documento == 'Nota Técnica' %}
+                        <tr>
+                            <td>{{ documento.secretaria }}</td>
+                            <td>{{ documento.data_envio.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                            <td class="text-center">
+                                <!-- Botão para visualizar o arquivo original em uma nova aba -->
+                                <a href="{{ url_for('visualizar_documento', filename=documento.arquivo) }}" target="_blank" class="btn btn-info btn-sm">Visualizar</a>
+                                <!-- Botão para enviar resposta -->
+                                <a href="{{ url_for('responder_nota_tecnica', nota_id=documento.id) }}" class="btn btn-success btn-sm">Enviar Resposta</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

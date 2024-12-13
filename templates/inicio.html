@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal do Auditor - Bem-vindo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e0e0eb;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            color: #2e2e2e;
+            box-sizing: border-box;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin: 1em 0; /* Ajuste para dar espaço entre a imagem e o texto */
+            color: #004080;
+        }
+        .links {
+            display: flex;
+            gap: 3em;
+        }
+        a {
+            text-decoration: none;
+            color: #004080;
+            border: 2px solid #004080;
+            padding: 1.5em;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: background-color 0.4s, border-color 0.4s;
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+            min-width: 200px; /* Tamanho mínimo para uniformidade */
+            height: 70px; /* Altura fixa para todos os botões */
+        }
+        a:hover {
+            background-color: #004080;
+            color: #fff;
+            border-color: #003366;
+        }
+        svg {
+            margin-right: 10px;
+            width: 36px;
+            height: 36px;
+            fill: currentColor;
+        }
+    </style>
+</head>
+<body>
+    <img src="{{ url_for('static', filename='imagem/brasao.png') }}" alt="Brasão" style="max-width: 200px; margin-bottom: 1em;"> <!-- Ajuste de tamanho -->
+    <h1>Bem-vindo ao Portal do Auditor</h1>
+    <div class="links">
+        <a href="{{ url_for('login_auditor') }}">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 5a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm0-3.5A3.5 3.5 0 1 0 8 8 3.5 3.5 0 0 0 8 1.5zm4.796 4.235A4.02 4.02 0 0 1 8.93 9H7.07a4.02 4.02 0 0 1-3.864-3.265 4.978 4.978 0 0 0-1.684 1.2A5.978 5.978 0 0 0 2 12.26v1.495a.25.25 0 0 0 .405.207L5.5 12H10.5l3.095 1.962A.25.25 0 0 0 14 13.754V12.26a5.978 5.978 0 0 0-.204-1.725 4.978 4.978 0 0 0-1.684-1.2zM8 10a6 6 0 0 0-6 6h12a6 6 0 0 0-6-6z"/>
+            </svg>
+            Auditor
+        </a>
+        <a href="{{ url_for('login_controlador') }}">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 0a4 4 0 1 1 0 8A4 4 0 0 1 8 0zm0 1a3 3 0 1 0 0 6A3 3 0 0 0 8 1zM2.16 9.735A4.978 4.978 0 0 0 0 12.26V13h16v-.74a4.978 4.978 0 0 0-2.16-2.525A5.978 5.978 0 0 0 8 10a5.978 5.978 0 0 0-5.84 6h11.68A5.978 5.978 0 0 0 8 10c-1.2 0-2.33.263-3.35.735zM2 12c0-.542.235-1.051.611-1.385A4.02 4.02 0 0 1 8 14c1.092 0 2.125-.35 2.988-.918C11.765 12.949 12 13.458 12 14H2z"/>
+            </svg>
+            Controlador Geral
+        </a>
+        <a href="{{ url_for('login_auditado') }}">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 1.5A6.5 6.5 0 1 1 1.5 8 6.507 6.507 0 0 1 8 1.5zM8 0a7 7 0 1 0 7 7A7.007 7.007 0 0 0 8 0zm-1 10.5V8H6v2.5h1.5zM10.5 8H9V6.5h1.5z"/>
+            </svg>
+            Auditados
+        </a>
+    </div>
+</body>
+</html>

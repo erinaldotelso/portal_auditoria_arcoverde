@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}Comunicações{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-check me-1"></i> Atividades Realizadas</h3>
+    </div>
+    <div class="card-body">
+        <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addCommunicationModal">Cadastrar Comunicação</button>
+
+        <!-- Filtros de Ano e Mês -->
+        <div class="mb-3 d-flex align-items-end">
+            <div class="me-3">
+                <label for="filter-ano" class="form-label">Filtrar por Ano:</label>
+                <select id="filter-ano" class="form-select" onchange="filterTable()">
+                    <option value="">Todos</option>
+                    {% for ano in anos %}
+                        <option value="{{ ano }}">{{ ano }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="me-3">
+                <label for="filter-mes" class="form-label">Filtrar por Mês:</label>
+                <select id="filter-mes" class="form-select" onchange="filterTable()">
+                    <option value="">Todos</option>
+                    {% set meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"] %}
+                    {% for mes_num in range(1, 13) %}
+                        <option value="{{ mes_num }}">{{ meses[mes_num - 1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button class="btn btn-secondary" onclick="filterTable()">Filtrar</button>
+        </div>
+
+        <!-- Tabela de Comunicações -->
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Comunicação</th>
+                        <th>Data</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="comunicacao-table">
+                    {% for comunicacao in comunicacoes %}
+                        <tr data-ano="{{ comunicacao.data.year if comunicacao.data else '' }}" data-mes="{{ comunicacao.data.month if comunicacao.data else '' }}">
+                            <td>{{ comunicacao.id }}</td>
+                            <td>{{ comunicacao.mensagem }}</td>
+                            <td>
+                                {% if comunicacao.data %}
+                                    {{ comunicacao.data.strftime('%d/%m/%Y') }}
+                                {% else %}
+                                    Não definida
+                                {% endif %}
+                            </td>
+                            <td>
+                                <!-- Ícone de Editar -->
+                                <a href="{{ url_for('editar_comunicacao', id=comunicacao.id) }}" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <!-- Ícone de Excluir -->
+                                <form action="{{ url_for('excluir_comunicacao', id=comunicacao.id) }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir?');">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Adicionar Comunicação -->
+<div class="modal fade" id="addCommunicationModal" tabindex="-1" aria-labelledby="addCommunicationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCommunicationModalLabel">Cadastrar Comunicação</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('comunicacao') }}">
+                    <div class="mb-3">
+                        <label for="data" class="form-label">Data:</label>
+                        <input type="date" name="data" id="data" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="mensagem" class="form-label">Mensagem:</label>
+                        <textarea name="mensagem" id="mensagem" class="form-control" rows="4" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Adicionar Comunicação</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Função para filtrar a tabela com base nos filtros de ano e mês
+    function filterTable() {
+        var anoFilter = document.getElementById('filter-ano').value;
+        var mesFilter = document.getElementById('filter-mes').value;
+        var rows = document.querySelectorAll('#comunicacao-table tr');
+
+        rows.forEach(row => {
+            var anoMatch = (anoFilter === "" || row.getAttribute('data-ano') === anoFilter);
+            var mesMatch = (mesFilter === "" || row.getAttribute('data-mes') === mesFilter);
+            row.style.display = (anoMatch && mesMatch) ? '' : 'none';
+        });
+    }
+</script>
+{% endblock %}

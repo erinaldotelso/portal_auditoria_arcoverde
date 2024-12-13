@@ -1,0 +1,57 @@
+{% extends "base_auditado.html" %}
+
+{% block title %}Responder - Portal do Auditor{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-reply me-1"></i> Responder {{ tipo_documento }}</h3>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('enviar_resposta', pedido_id=pedido.id) }}" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="textoResposta" class="form-label">Resposta</label>
+                <textarea class="form-control" id="textoResposta" name="texto_resposta" rows="5" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="arquivoResposta" class="form-label">Anexar Arquivo (PDF)</label>
+                <input type="file" class="form-control" id="arquivoResposta" name="arquivo_resposta" accept="application/pdf">
+            </div>
+            <button type="submit" class="btn btn-primary">Enviar Resposta</button>
+            <a href="{{ url_for('visualizar_pedido_informacao') }}" class="btn btn-secondary">Cancelar</a>
+        </form>
+
+        <!-- Tabela para exibir as respostas -->
+        <div class="table-responsive mt-4">
+            <table class="table table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Resposta</th>
+                        <th>Data</th>
+                        <th>Resposta Enviada</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for resposta in respostas %}
+                        <tr>
+                            <td>{{ resposta.texto_resposta }}</td>
+                            <td>{{ resposta.data_envio.strftime('%d/%m/%Y') }}</td>
+                            <td>
+                                {% if resposta.arquivo_resposta %}
+                                    <a href="{{ url_for('visualizar_documento', filename=resposta.arquivo_resposta) }}" target="_blank">Arquivo Enviado</a>
+                                {% else %}
+                                    Sem arquivo
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <a href="{{ url_for('editar_resposta', resposta_id=resposta.id) }}" class="btn btn-warning btn-sm">Editar</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

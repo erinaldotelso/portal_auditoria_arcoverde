@@ -1,0 +1,92 @@
+{% extends 'base_cgm.html' %}
+
+{% block title %}Meus Relatórios - Portal do Auditor{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-file-alt me-1"></i> Meus Relatórios</h3>
+    </div>
+    <div class="card-body">
+        <!-- Formulário de filtro -->
+        <form method="get" action="{{ url_for('meus_relatorios_cgm') }}" class="mb-4">
+            <div class="row gy-3">
+                <div class="col-md-4">
+                    <select name="tipo" class="form-select">
+                        <option value="">Filtrar por tipo</option>
+                        {% for tipo in tipos %}
+                            <option value="{{ tipo }}" {% if request.args.get('tipo') == tipo %}selected{% endif %}>{{ tipo }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <select name="ano" class="form-select">
+                        <option value="">Filtrar por ano</option>
+                        {% for ano in anos %}
+                            <option value="{{ ano }}" {% if request.args.get('ano') == ano %}selected{% endif %}>{{ ano }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">Filtrar</button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Dicionário para mapear os valores das secretarias -->
+        {% set secretarias = {
+            'planejamento': 'Secretaria Municipal de Planejamento',
+            'desenvolvimento_economico': 'Secretaria Municipal de Desenvolvimento Econômico',
+            'financas': 'Secretaria Municipal de Finanças',
+            'controle': 'Secretaria Municipal de Controle Interno e T. Pública',
+            'agricultura': 'Secretaria Municipal de Agricultura',
+            'desenvolvimento_urbano': 'Secretaria Municipal de Desenvolvimento Urbano',
+            'esportes': 'Secretaria Municipal de Esportes',
+            'servicos_publicos': 'Secretaria Municipal de Serviços Públicos e Meio Ambiente',
+            'cultura': 'Secretaria Municipal de Cultura',
+            'turismo_eventos': 'Secretaria Municipal de Turismo e Eventos',
+            'mulher': 'Secretaria da Mulher',
+            'administracao_patrimonio': 'Secretaria Municipal de Administração e Patrimônio',
+            'educacao': 'Secretaria Municipal de Educação',
+            'saude': 'Secretaria Municipal de Saúde',
+            'assistencia_social': 'Secretaria Municipal de Assistência Social'
+        } %}
+
+        <!-- Tabela para exibir os relatórios -->
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Título</th>
+                        <th>Secretaria</th>
+                        <th>Tipo</th>
+                        <th>Data Início</th>
+                        <th>Data Fim</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for relatorio in relatorios %}
+                        <tr>
+                            <td>{{ relatorio.id }}</td>
+                            <td>{{ relatorio.titulo }}</td>
+                            <td>{{ secretarias[relatorio.departamento] }}</td>
+                            <td>{{ relatorio.tipo }}</td>
+                            <td>{{ relatorio.data_inicio }}</td>
+                            <td>{{ relatorio.data_fim }}</td>
+                            <td class="d-flex gap-2">
+                                {% if relatorio.arquivo_pdf %}
+                                    <a href="{{ url_for('visualizar_relatorio_cgm', filename=relatorio.arquivo_pdf) }}" class="btn btn-sm btn-success"><i class="fas fa-eye"></i></a>
+                                {% else %}
+                                    <span class="text-muted">Nenhum arquivo</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

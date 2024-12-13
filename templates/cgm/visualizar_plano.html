@@ -1,0 +1,23 @@
+{% extends 'base_cgm.html' %}
+
+{% block title %}Visualizar Plano de Auditoria - Portal do Auditor{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-file-alt me-1"></i> Visualizar Plano de Auditoria</h3>
+    </div>
+    <div class="card-body">
+        {% if plano.arquivo %}
+            <object data="{{ url_for('serve_plano', filename=plano.arquivo) }}" type="application/pdf" width="100%" height="600px" style="border: none;">
+                <p>Seu navegador não suporta visualização de PDF. Faça o download clicando <a href="{{ url_for('serve_plano', filename=plano.arquivo) }}">aqui</a>.</p>
+            </object>
+        {% else %}
+            <p>Nenhum arquivo anexado.</p>
+        {% endif %}
+    </div>
+    <div class="card-footer">
+        <a href="{{ url_for('cgm_plano_de_auditoria') }}" class="btn btn-secondary"><i class="fas fa-arrow-left me-2"></i> Voltar </a>
+    </div>
+</div>
+{% endblock %}

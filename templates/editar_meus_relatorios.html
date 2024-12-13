@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Relatório - Portal do Auditor{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-edit me-2"></i>Editar Relatório</h3>
+        </div>
+        <div class="card-body">
+            <form action="{{ url_for('editar_relatorio', id=relatorio['id']) }}" method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="titulo" class="form-label">Título do Relatório</label>
+                    <input type="text" class="form-control" id="titulo" name="titulo" value="{{ relatorio['titulo'] }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="departamento" class="form-label">Secretaria</label>
+                    <select class="form-select" id="departamento" name="departamento" required>
+                        <option value="">Selecione uma Secretaria</option>
+                        <option value="planejamento" {% if relatorio['departamento'] == 'planejamento' %}selected{% endif %}>Secretaria Municipal de Planejamento</option>
+                        <option value="desenvolvimento_economico" {% if relatorio['departamento'] == 'desenvolvimento_economico' %}selected{% endif %}>Secretaria Municipal de Desenvolvimento Econômico</option>
+                        <option value="financas" {% if relatorio['departamento'] == 'financas' %}selected{% endif %}>Secretaria Municipal de Finanças</option>
+                        <option value="controle" {% if relatorio['departamento'] == 'controle' %}selected{% endif %}>Secretaria Municipal de Controle Interno e T. Pública</option>
+                        <option value="agricultura" {% if relatorio['departamento'] == 'agricultura' %}selected{% endif %}>Secretaria Municipal de Agricultura</option>
+                        <option value="desenvolvimento_urbano" {% if relatorio['departamento'] == 'desenvolvimento_urbano' %}selected{% endif %}>Secretaria Municipal de Desenvolvimento Urbano</option>
+                        <option value="esportes" {% if relatorio['departamento'] == 'esportes' %}selected{% endif %}>Secretaria Municipal de Esportes</option>
+                        <option value="servicos_publicos" {% if relatorio['departamento'] == 'servicos_publicos' %}selected{% endif %}>Secretaria Municipal de Serviços Públicos e Meio Ambiente</option>
+                        <option value="cultura" {% if relatorio['departamento'] == 'cultura' %}selected{% endif %}>Secretaria Municipal de Cultura</option>
+                        <option value="turismo_eventos" {% if relatorio['departamento'] == 'turismo_eventos' %}selected{% endif %}>Secretaria Municipal de Turismo e Eventos</option>
+                        <option value="mulher" {% if relatorio['departamento'] == 'mulher' %}selected{% endif %}>Secretaria da Mulher</option>
+                        <option value="administracao_patrimonio" {% if relatorio['departamento'] == 'administracao_patrimonio' %}selected{% endif %}>Secretaria Municipal de Administração e Patrimônio</option>
+                        <option value="educacao" {% if relatorio['departamento'] == 'educacao' %}selected{% endif %}>Secretaria Municipal de Educação</option>
+                        <option value="saude" {% if relatorio['departamento'] == 'saude' %}selected{% endif %}>Secretaria Municipal de Saúde</option>
+                        <option value="assistencia_social" {% if relatorio['departamento'] == 'assistencia_social' %}selected{% endif %}>Secretaria Municipal de Assistência Social</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="tipo" class="form-label">Tipo</label>
+                    <select class="form-select" id="tipo" name="tipo" required>
+                        <option value="Ordinário" {% if relatorio['tipo'] == 'Ordinário' %}selected{% endif %}>Ordinário</option>
+                        <option value="Extraordinário" {% if relatorio['tipo'] == 'Extraordinário' %}selected{% endif %}>Extraordinário</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="data_inicio" class="form-label">Data de Início</label>
+                    <input type="date" class="form-control" id="data_inicio" name="data_inicio" value="{{ relatorio['data_inicio'] }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="data_fim" class="form-label">Data de Término Prevista</label>
+                    <input type="date" class="form-control" id="data_fim" name="data_fim" value="{{ relatorio['data_fim'] }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="relatorio" class="form-label">Anexar Relatório (PDF)</label>
+                    <input type="file" class="form-control" id="relatorio" name="relatorio" accept="application/pdf">
+                    {% if relatorio['arquivo_pdf'] %}
+                        <p class="mt-2">Arquivo Atual: <a href="{{ url_for('visualizar_relatorio', filename=relatorio['arquivo_pdf']) }}" target="_blank">{{ relatorio['arquivo_pdf'] }}</a></p>
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn btn-primary">Atualizar Relatório</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

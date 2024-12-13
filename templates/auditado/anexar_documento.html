@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Portal do Auditor - Anexar Documentos{% endblock %}
+
+{% block content %}
+<style>
+    .nav-tabs .nav-link {
+        color: #000;  /* Texto preto para abas inativas */
+        background-color: #d3d3d3; /* Fundo mais escuro para abas inativas */
+    }
+    .nav-tabs .nav-link.active {
+        background-color: #0056b3;  /* Cor de fundo para a aba ativa */
+        color: #fff;  /* Texto branco para a aba ativa */
+    }
+    .btn-primary, .btn-info, .btn-success {
+        color: #fff !important;  /* Garante texto branco nos botões */
+    }
+</style>
+
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-file-upload me-1"></i> Portal de Comunicações</h3>
+    </div>
+    <div class="card-body">
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" id="documentosTabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="envios-tab" data-bs-toggle="tab" href="#envios" role="tab" aria-controls="envios" aria-selected="true">Envios</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="recebidos-tab" data-bs-toggle="tab" href="#recebidos" role="tab" aria-controls="recebidos" aria-selected="false">Recebidos</a>
+            </li>
+        </ul>
+
+        <!-- Tab panes -->
+        <div class="tab-content mt-3">
+            <!-- Aba Envios -->
+            <div class="tab-pane fade show active" id="envios" role="tabpanel" aria-labelledby="envios-tab">
+                <form method="POST" action="{{ url_for('anexar_documento') }}" enctype="multipart/form-data">
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label for="secretaria" class="form-label">Secretaria</label>
+                            <select class="form-select" name="secretaria" id="secretaria" required>
+                                <option value="">Selecione uma secretaria</option>
+                                {% for secretaria in secretarias %}
+                                    <option value="{{ secretaria.secretaria }}">{{ secretaria.secretaria }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tipoDocumento" class="form-label">Tipo de Documento</label>
+                        <select class="form-select" name="tipo_documento" id="tipoDocumento" required>
+                            <option value="">Selecione um tipo de documento</option>
+                            <option value="Solicitação de Informação">Solicitação de Informação</option>
+                            <option value="Plano de Auditoria">Plano de Auditoria</option>
+                            <option value="Nota Técnica">Nota Técnica</option>
+                            <option value="Relatório Preliminar">Relatório Preliminar</option>
+                            <option value="Relatório Final de Auditoria">Relatório Final de Auditoria</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="arquivo" class="form-label">Escolha o arquivo (PDF)</label>
+                        <input type="file" class="form-control" name="arquivo" id="arquivo" accept="application/pdf" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Enviar Documento</button>
+                </form>
+
+                <!-- Filtro para Tipo de Documento -->
+                <div class="mb-3 mt-4">
+                    <label for="filtroTipoDocumento" class="form-label">Filtrar por Tipo de Documento</label>
+                    <select class="form-select" id="filtroTipoDocumento">
+                        <option value="">Todos</option>
+                        <option value="Solicitação de Informação">Solicitação de Informação</option>
+                        <option value="Plano de Auditoria">Plano de Auditoria</option>
+                        <option value="Nota Técnica">Nota Técnica</option>
+                        <option value="Relatório Preliminar">Relatório Preliminar</option>
+                        <option value="Relatório Final de Auditoria">Relatório Final de Auditoria</option>
+                    </select>
+                </div>
+
+                <!-- Tabela de Documentos Enviados -->
+                <div class="table-responsive mt-4">
+                    <table class="table table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Secretaria</th>
+                                <th>Tipo de Documento</th>
+                                <th>Arquivo</th>
+                                <th class="text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documentos-table">
+                            {% if documentos %}
+                                {% for documento in documentos %}
+                                    <tr data-tipo="{{ documento.tipo_documento }}">
+                                        <td>{{ documento.secretaria }}</td>
+                                        <td>{{ documento.tipo_documento }}</td>
+                                        <td>
+                                            <a href="{{ url_for('baixar_documento', filename=documento.arquivo) }}" target="_blank">
+                                                {{ documento.arquivo }}
+                                            </a>
+                                        </td>
+                                        <td class="text-center">
+                                            <form action="{{ url_for('excluir_documento', id=documento.id) }}" method="POST" style="display:inline;">
+                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir?');">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center">Nenhum documento encontrado.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Aba Recebidos -->
+            <div class="tab-pane fade" id="recebidos" role="tabpanel" aria-labelledby="recebidos-tab">
+                <div class="table-responsive mt-3">
+                    <table class="table table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Secretaria</th>
+                                <th>Data da Resposta</th>
+                                <th>Resposta Enviada</th>
+                                <th>Arquivo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="respostas-table">
+                            {% if respostas %}
+                                {% for resposta in respostas %}
+                                    <tr>
+                                        <td>{{ resposta.secretaria }}</td>  <!-- Exibe a secretaria da resposta -->
+                                        <td>{{ resposta.data_envio.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                                        <td>{{ resposta.texto_resposta }}</td>
+                                        <td>
+                                            {% if resposta.arquivo_resposta %}
+                                                <a href="{{ url_for('baixar_documento', filename=resposta.arquivo_resposta) }}" target="_blank">Arquivo enviado</a>
+                                            {% else %}
+                                                Sem arquivo
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center">Nenhuma resposta recebida.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('filtroTipoDocumento').addEventListener('change', function() {
+        var tipoSelecionado = this.value;
+        var linhas = document.querySelectorAll('#documentos-table tr');
+        
+        linhas.forEach(function(linha) {
+            var tipoDocumento = linha.getAttribute('data-tipo');
+            if (tipoSelecionado === "" || tipoDocumento === tipoSelecionado) {
+                linha.style.display = "";
+            } else {
+                linha.style.display = "none";
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Auditoria{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h2>Editar Auditoria</h2>
+        <form method="POST">
+            <div class="mb-3">
+                <label for="numero_auditoria" class="form-label">Nº da Auditoria</label>
+                <input type="text" class="form-control" name="numero_auditoria" value="{{ auditoria.numero_auditoria }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="area" class="form-label">Área</label>
+                <input type="text" class="form-control" name="area" value="{{ auditoria.area }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="departamento" class="form-label">Departamento</label>
+                <input type="text" class="form-control" name="departamento" value="{{ auditoria.departamento }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="data" class="form-label">Data</label>
+                <input type="text" class="form-control" name="data" value="{{ auditoria.data.strftime('%d/%m/%Y') }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select" name="status" required>
+                    <option value="Em andamento" {% if auditoria.status == 'Em andamento' %}selected{% endif %}>Em andamento</option>
+                    <option value="Concluído" {% if auditoria.status == 'Concluído' %}selected{% endif %}>Concluído</option>
+                    <option value="Suspenso" {% if auditoria.status == 'Suspenso' %}selected{% endif %}>Suspenso</option>
+                </select>
+            </div>
+            <div class="d-flex justify-content-between">
+                <!-- Botão para salvar as alterações -->
+                <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+
+                <!-- Botão para cancelar e retornar ao dashboard -->
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

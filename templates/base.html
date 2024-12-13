@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Portal do Auditor{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        .navbar {
+            background-color: #005a87;
+        }
+        .navbar-brand, .nav-link {
+            color: white !important;
+        }
+        .container {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        h1, h2 {
+            color: #005a87;
+        }
+        .btn-primary {
+            background-color: #005a87;
+            border-color: #005a87;
+        }
+        .btn-primary:hover {
+            background-color: #004b70;
+            border-color: #004b70;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#"><i class="fas fa-chart-line me-2"></i>Portal do Auditor</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('home') }}"><i class="fas fa-home me-1"></i>Home</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="painelDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-tachometer-alt me-1"></i> Painel de Controle
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="painelDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('auditoria') }}">Cadastrar Auditoria</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('listar_usuarios') }}">Gestão de Usuários</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('comunicacao') }}">Atividades Realizadas</a></li> <!-- Novo submenu -->
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('meus_relatorios') }}"><i class="fas fa-chart-line me-1"></i>Meus Relatórios</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="planejamentoDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-calendar-alt me-1"></i> Planejamento
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="planejamentoDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('plano_de_auditoria') }}">Plano de Auditoria</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('visualizar_matriz_planejamento') }}">Matriz de Planejamento</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('visualizar_matriz_risco') }}">Matriz de Risco</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('cadastrar') }}">Pedido de Informação</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('anexar_documento') }}"><i class="fas fa-envelope me-1"></i>Comunicações</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('documentos') }}"><i class="fas fa-file-alt me-1"></i>Documentos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard') }}"><i class="fas fa-chart-pie me-1"></i>Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('inicio') }}"><i class="fas fa-sign-out-alt me-1"></i>Logout</a>
+                    </li>
+                </ul>
+            </div>
+            <span class="navbar-text" id="user-info">
+                <i class="fas fa-user-circle me-1"></i>Bem-vindo, Auditor
+            </span>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer class="navbar fixed-bottom" style="background-color: #005a87; color: white;">
+        <div class="container-fluid text-center">
+            <p class="mb-0">© 2024 Gestão de Auditoria. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+</body>
+</html>

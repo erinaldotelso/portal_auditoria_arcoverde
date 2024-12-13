@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Visualizar Manual de Auditoria - Portal do Auditor{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-book me-1"></i> Visualizar Manual de Auditoria</h3>
+    </div>
+    <div class="card-body">
+        <iframe src="{{ url_for('serve_manual_pdf') }}" width="100%" height="600px" style="border: none;"></iframe>
+    </div>
+    <div class="card-footer">
+        <a href="{{ url_for('documentos') }}" class="btn btn-secondary"><i class="fas fa-arrow-left me-2"></i> Voltar</a>
+    </div>
+</div>
+{% endblock %}

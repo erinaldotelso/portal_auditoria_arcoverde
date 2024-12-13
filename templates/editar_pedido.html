@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Pedido de Informação{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-edit me-1"></i> Editar Pedido de Informação</h3>
+        </div>
+        <div class="card-body">
+            <form action="{{ url_for('editar_pedido', id=pedido.id) }}" method="POST" enctype="multipart/form-data" class="mb-4">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="orgao" class="form-label">Órgão:</label>
+                        <select name="orgao" class="form-select" required>
+                            <option value="">Selecione um órgão</option>
+                            {% for unidade in unidades %}
+                                <option value="{{ unidade[0] }}" {% if pedido.orgao == unidade[0] %}selected{% endif %}>
+                                    {{ unidade[1] }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="processo" class="form-label">Processo:</label>
+                        <input type="text" name="processo" value="{{ pedido.processo }}" class="form-control" required>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="data_envio" class="form-label">Data de Envio:</label>
+                        <input type="date" name="data_envio" value="{{ pedido.data_envio.strftime('%Y-%m-%d') }}" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="prazo" class="form-label">Prazo em Dias:</label>
+                        <input type="number" name="prazo" value="{{ pedido.prazo }}" class="form-control" required>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="arquivo" class="form-label">Anexar Arquivo:</label>
+                        <input type="file" id="arquivo" name="arquivo" class="form-control">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

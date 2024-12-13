@@ -1,0 +1,17 @@
+{% extends 'base_cgm.html' %}
+
+{% block title %}Visualizar Decreto Municipal - Portal do Auditor{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-gavel me-1"></i> Visualizar Decreto Municipal</h3>
+    </div>
+    <div class="card-body">
+        <iframe src="{{ url_for('serve_decreto_pdf') }}" width="100%" height="600px" style="border: none;"></iframe>
+    </div>
+    <div class="card-footer">
+        <a href="{{ url_for('documentos_view') }}" class="btn btn-secondary"><i class="fas fa-arrow-left me-2"></i> Voltar</a>
+    </div>
+</div>
+{% endblock %}

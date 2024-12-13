@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Matriz de Risco{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-file-excel me-1"></i> Matriz de Risco</h3>
+        </div>
+        <div class="card-body">
+            <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addRiskMatrixModal">Adicionar Risco</button>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Risco</th>
+                            <th>Probabilidade</th>
+                            <th>Impacto</th>
+                            <th>Mitigação</th>
+                            <th>Status</th>
+                            <th>Ações</th> <!-- Coluna para Editar e Excluir -->
+                        </tr>
+                    </thead>
+                    <tbody id="riskMatrixBody">
+                        {% for risco in riscos %}
+                            <tr>
+                                <td>{{ risco.risco }}</td>
+                                <td>{{ risco.probabilidade }}</td>
+                                <td>{{ risco.impacto }}</td>
+                                <td>{{ risco.mitigacao }}</td>
+                                <td>{{ risco.status }}</td>
+                                <td class="d-flex justify-content-center align-items-center">
+                                    <!-- Ícone de Editar -->
+                                    <a href="{{ url_for('editar_risco', id=risco.id) }}" class="btn btn-warning btn-sm me-2">
+                                        <i class="fas fa-edit"></i> <!-- Ícone de edição -->
+                                    </a>
+                                    <!-- Ícone de Excluir -->
+                                    <a href="{{ url_for('excluir_risco', id=risco.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir?');">
+                                        <i class="fas fa-trash-alt"></i> <!-- Ícone de exclusão -->
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para adicionar novo risco -->
+    <div class="modal fade" id="addRiskMatrixModal" tabindex="-1" aria-labelledby="addRiskMatrixModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addRiskMatrixModalLabel">Adicionar Novo Risco</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{{ url_for('cadastrar_risco') }}">
+                        <div class="mb-3">
+                            <label for="risco" class="form-label">Risco</label>
+                            <input type="text" class="form-control" name="risco" id="risco" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="probabilidade" class="form-label">Probabilidade</label>
+                            <select class="form-select" name="probabilidade" id="probabilidade" required>
+                                <option value="Muito Baixa">Muito Baixa</option>
+                                <option value="Baixa">Baixa</option>
+                                <option value="Média">Média</option>
+                                <option value="Alta">Alta</option>
+                                <option value="Muito Alta">Muito Alta</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="impacto" class="form-label">Impacto</label>
+                            <select class="form-select" name="impacto" id="impacto" required>
+                                <option value="Muito Baixo">Muito Baixo</option>
+                                <option value="Baixo">Baixo</option>
+                                <option value="Moderado">Moderado</option>
+                                <option value="Alto">Alto</option>
+                                <option value="Muito Alto">Muito Alto</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="mitigacao" class="form-label">Mitigação</label>
+                            <input type="text" class="form-control" name="mitigacao" id="mitigacao" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" name="status" id="status" required>
+                                <option value="Não Tratado">Não Tratado</option>
+                                <option value="Em Mitigação">Em Mitigação</option>
+                                <option value="Mitigado">Mitigado</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
