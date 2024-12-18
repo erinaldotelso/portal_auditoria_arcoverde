@@ -178,8 +178,8 @@ class Resposta(db.Model):
 
 # Credenciais de login
 users = {
-    'auditoria@arcoverde.pe.gov.br': {'password': '123456', 'role': 'auditor'},
-    'controladoria@arcoverde.pe.gov.br': {'password': '123456', 'role': 'controlador', 'first_login': True}
+    'auditoria@arcoverde.pe.gov.br': {'password': '#aud2025#', 'role': 'auditor'},
+    'controladoria@arcoverde.pe.gov.br': {'password': 'cgm2025', 'role': 'controlador'}
 }
 
 # Página de login
@@ -222,39 +222,13 @@ def login_controlador():
         if user and user['password'] == password and user['role'] == 'controlador':
             session['logged_in'] = True
             session['user_role'] = user['role']
-            session['email'] = email  # Armazenando o e-mail na sessão para alteração de senha
-
-            # Verifica se é o primeiro login do controlador
-            if user.get('first_login'):
-                return redirect(url_for('alterar_senha'))
-
+            session['email'] = email  # Armazenando o e-mail na sessão
             return redirect(url_for('cgm_home'))  # Redireciona para a página do controlador
         else:
             flash('E-mail ou senha inválidos!', 'danger')
 
     return render_template('login_controlador.html')
 
-
-# Página para o controlador criar/alterar senha no primeiro login
-@app.route('/alterar_senha', methods=['GET', 'POST'])
-def alterar_senha():
-    if 'logged_in' not in session or session.get('user_role') != 'controlador':
-        return redirect(url_for('login_controlador'))  # Verifica se o usuário é um controlador
-
-    if request.method == 'POST':
-        nova_senha = request.form.get('nova_senha')
-        confirmar_senha = request.form.get('confirmar_senha')
-
-        if nova_senha == confirmar_senha:
-            email = session.get('email')
-            users[email]['password'] = nova_senha
-            users[email]['first_login'] = False  # Remove o status de primeiro login
-            flash('Senha alterada com sucesso!', 'success')
-            return redirect(url_for('cgm_home'))  # Redireciona para a página do controlador
-        else:
-            flash('As senhas não coincidem. Tente novamente.', 'danger')
-
-    return render_template('alterar_senha.html')
 
 # Página inicial (home) do auditor
 @app.route('/home')
