@@ -163,14 +163,14 @@ class Resposta(db.Model):
     __tablename__ = 'respostas'
 
     id = db.Column(db.Integer, primary_key=True)
-    documento_id = db.Column(db.Integer, db.ForeignKey('documentos.id'), nullable=False)
+    documento_id = db.Column(db.Integer, db.ForeignKey('documentos.id', ondelete='CASCADE'), nullable=False)
     texto_resposta = db.Column(db.Text, nullable=True)
     arquivo_resposta = db.Column(db.String(120), nullable=True)
     data_envio = db.Column(db.DateTime, default=datetime.utcnow)
     secretaria = db.Column(db.String(100))  # Nova coluna para armazenar a secretaria associada
 
     # Relacionamento com o modelo Documento
-    documento = db.relationship('Documento', backref=db.backref('respostas', lazy=True))
+    documento = db.relationship('Documento', backref=db.backref('respostas', lazy=True, cascade="all, delete"))
     
 #----------------------------------------------------------------------------------------------------------------#
 #                                                    login                                                       #
@@ -1510,11 +1510,6 @@ def excluir_documento(id):
     else:
         flash('Documento não encontrado.')
     return redirect(url_for('anexar_documento'))
-
-@app.route('/uploads/auditados/recebidos/<path:filename>', methods=['GET'])
-def send_file(filename):
-    return send_from_directory(app.config['AUDITADOS_RECEBIDOS_DIR'], filename)
-
 
 #----------------------------------------------------------------------------------------------------------------------#
 #-----------------------------------------------------Auditado---------------------------------------------------------#
