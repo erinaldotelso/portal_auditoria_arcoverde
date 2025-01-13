@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - Portal do Auditor{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
 <div class="card">
@@ -8,6 +8,18 @@
         <h3><i class="fas fa-chart-pie me-1"></i> Dashboard de Auditorias</h3>
     </div>
     <div class="card-body">
+        <!-- Filtro de Ano -->
+        <form method="get" class="mb-4">
+            <label for="ano" class="form-label">Filtrar por Ano:</label>
+            <select name="ano" id="ano" class="form-select" onchange="this.form.submit()">
+                <option value="" {% if not ano_selecionado %}selected{% endif %}>Todos os anos</option>
+                {% for ano in anos_disponiveis %}
+                <option value="{{ ano }}" {% if ano == ano_selecionado %}selected{% endif %}>{{ ano }}</option>
+                {% endfor %}
+            </select>
+        </form>
+
+        <!-- Gráficos -->
         <div class="row">
             <div class="col-md-6 mb-4">
                 <canvas id="statusChart" width="350" height="250"></canvas>
@@ -17,6 +29,7 @@
             </div>
         </div>
 
+        <!-- Resumo de Auditorias -->
         <h4 class="mt-4">Resumo de Auditorias</h4>
         <div class="table-responsive">
             <table class="table table-striped">
@@ -30,16 +43,17 @@
                 <tbody>
                     {% set total_auditorias = status_counts.values() | sum %}
                     {% for status, count in status_counts.items() %}
-                        <tr>
-                            <td>{{ status }}</td>
-                            <td>{{ count }}</td>
-                            <td>{{ (count / total_auditorias * 100) | round(2) }}%</td>
-                        </tr>
+                    <tr>
+                        <td>{{ status }}</td>
+                        <td>{{ count }}</td>
+                        <td>{{ (count / total_auditorias * 100) | round(2) }}%</td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
 
+        <!-- Resumo de Relatórios -->
         <h4 class="mt-4">Resumo de Relatórios</h4>
         <div class="table-responsive">
             <table class="table table-striped">
@@ -53,11 +67,11 @@
                 <tbody>
                     {% set total_relatorios = tipo_counts.values() | sum %}
                     {% for tipo, count in tipo_counts.items() %}
-                        <tr>
-                            <td>{{ tipo }}</td>
-                            <td>{{ count }}</td>
-                            <td>{{ (count / total_relatorios * 100) | round(2) }}%</td>
-                        </tr>
+                    <tr>
+                        <td>{{ tipo }}</td>
+                        <td>{{ count }}</td>
+                        <td>{{ (count / total_relatorios * 100) | round(2) }}%</td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -67,34 +81,33 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
 <script>
-    const statusCounts = {{ status_counts | tojson }};
-    const tipoCounts = {{ tipo_counts | tojson }};
-    
+    // Dados para o gráfico de status
+    const statusData = {
+        labels: Object.keys({{ status_counts | tojson }}),
+        datasets: [{
+            label: 'Status das Auditorias',
+            data: Object.values({{ status_counts | tojson }}),
+            backgroundColor: ['#28a745', '#ffc107', '#dc3545'],
+            borderWidth: 1,
+        }]
+    };
+
+    // Configuração do gráfico de status
     const ctxStatus = document.getElementById('statusChart').getContext('2d');
-    const statusChart = new Chart(ctxStatus, {
+    new Chart(ctxStatus, {
         type: 'pie',
-        data: {
-            labels: Object.keys(statusCounts),
-            datasets: [{
-                label: 'Status das Auditorias',
-                data: Object.values(statusCounts),
-                backgroundColor: ['#28a745', '#ffc107', '#dc3545'],
-            }]
-        },
+        data: statusData,
         options: {
             responsive: true,
             plugins: {
-                legend: {
-                    display: true,
-                    position: 'top',
-                },
+                legend: { position: 'top' },
                 tooltip: {
                     callbacks: {
                         label: function(tooltipItem) {
-                            const total = Object.values(statusCounts).reduce((a, b) => a + b, 0);
-                            const currentValue = tooltipItem.raw;
-                            const percentage = ((currentValue / total) * 100).toFixed(2);
-                            return `${tooltipItem.label}: ${currentValue} (${percentage}%)`;
+                            const total = Object.values(statusData.datasets[0].data).reduce((a, b) => a + b, 0);
+                            const value = tooltipItem.raw;
+                            const percentage = ((value / total) * 100).toFixed(2);
+                            return `${tooltipItem.label}: ${value} (${percentage}%)`;
                         }
                     }
                 }
@@ -102,41 +115,41 @@
         }
     });
 
+    // Dados para o gráfico de tipo
+    const tipoData = {
+        labels: Object.keys({{ tipo_counts | tojson }}),
+        datasets: [{
+            label: 'Relatórios por Tipo',
+            data: Object.values({{ tipo_counts | tojson }}),
+            backgroundColor: ['#007bff', '#6610f2'],
+            borderWidth: 1,
+        }]
+    };
+
+    // Configuração do gráfico de tipo
     const ctxTipo = document.getElementById('tipoChart').getContext('2d');
-    const tipoChart = new Chart(ctxTipo, {
+    new Chart(ctxTipo, {
         type: 'bar',
-        data: {
-            labels: Object.keys(tipoCounts),
-            datasets: [{
-                label: 'Quantidade de Relatórios por Tipo',
-                data: Object.values(tipoCounts),
-                backgroundColor: ['#007bff', '#6f42c1'],
-            }]
-        },
+        data: tipoData,
         options: {
             responsive: true,
             plugins: {
-                legend: {
-                    display: true,
-                    position: 'top',
-                },
+                legend: { position: 'top' },
                 tooltip: {
                     callbacks: {
                         label: function(tooltipItem) {
-                            const total = Object.values(tipoCounts).reduce((a, b) => a + b, 0);
-                            const currentValue = tooltipItem.raw;
-                            const percentage = ((currentValue / total) * 100).toFixed(2);
-                            return `${tooltipItem.label}: ${currentValue} (${percentage}%)`;
+                            const total = Object.values(tipoData.datasets[0].data).reduce((a, b) => a + b, 0);
+                            const value = tooltipItem.raw;
+                            const percentage = ((value / total) * 100).toFixed(2);
+                            return `${tooltipItem.label}: ${value} (${percentage}%)`;
                         }
                     }
                 }
+            },
+            scales: {
+                y: { beginAtZero: true }
             }
         }
     });
 </script>
 {% endblock %}
-
-{% block scripts %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
-{% endblock %}
-

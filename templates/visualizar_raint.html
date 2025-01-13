@@ -18,8 +18,9 @@
             {% endif %}
         {% endwith %}
 
-        {% if ano %}
-            <iframe src="{{ url_for('serve_pdf', filename=ano) }}" width="100%" height="600px" style="border: none;"></iframe>
+        {% if filename %}
+            <!-- Mostrar o PDF usando o iframe -->
+            <iframe src="{{ url_for('serve_raint_pdf', filename=filename) }}" width="100%" height="600px" style="border: none;"></iframe>
         {% else %}
             <p>Nenhum arquivo encontrado.</p>
         {% endif %}

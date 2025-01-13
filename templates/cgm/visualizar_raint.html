@@ -19,13 +19,14 @@
         {% endwith %}
 
         {% if ano %}
-            <iframe src="{{ url_for('serve_pdf', filename=ano) }}" width="100%" height="600px" style="border: none;"></iframe>
+            <!-- Mostrar o PDF usando o iframe -->
+            <iframe src="{{ url_for('serve_raint_pdf', filename=ano) }}" width="100%" height="600px" style="border: none;"></iframe>
         {% else %}
             <p>Nenhum arquivo encontrado.</p>
         {% endif %}
     </div>
     <div class="card-footer">
-        <a href="{{ url_for('documentos_view') }}" class="btn btn-secondary"><i class="fas fa-arrow-left me-2"></i> Voltar</a>
+        <a href="{{ url_for('documentos') }}" class="btn btn-secondary"><i class="fas fa-arrow-left me-2"></i> Voltar</a>
     </div>
 </div>
 {% endblock %}
