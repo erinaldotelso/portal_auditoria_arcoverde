@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory, send_file
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
+from flask_migrate import Migrate  # Importando Flask-Migrate
 import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
@@ -9,13 +9,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import logging
 from werkzeug.security import check_password_hash
-from google_drive_auth import authenticate_google_drive
 
-# Instâncias globais de SQLAlchemy e Migrate
-db = SQLAlchemy()
-migrate = Migrate()
-
-# Inicialização do aplicativo Flask
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # Altere para uma chave secreta mais robusta
 
@@ -24,53 +18,33 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'auditorias.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Associações ao aplicativo
-db.init_app(app)
-migrate.init_app(app, db)
+db = SQLAlchemy(app)  # Instância do SQLAlchemy
+migrate = Migrate(app, db)  # Instância do Migrate
 
-#-----------------------------------------------------------------------------------------------------------------------------#
-#                                       Inicializar o serviço do Google Drive                                                 #
-#-----------------------------------------------------------------------------------------------------------------------------#
-service = authenticate_google_drive()
+# Definir o diretório base do projeto
+basedir = os.path.abspath(os.path.dirname(__file__))
 
-# Função para criar pastas no Google Drive
-def create_drive_folder(service, folder_name, parent_id=None):
-    """Cria uma pasta no Google Drive."""
-    file_metadata = {
-        'name': folder_name,
-        'mimeType': 'application/vnd.google-apps.folder'
-    }
-    if parent_id:
-        file_metadata['parents'] = [parent_id]
-    folder = service.files().create(body=file_metadata, fields='id').execute()
-    return folder['id']
+# Configuração dos diretórios
+PLANO_AUDITORIA_DIR = os.path.join(basedir, 'uploads', 'plano de auditoria')
+PEDIDO_INFORMACAO = os.path.join(basedir, 'uploads', 'pedido de informação')
+UPLOADS_DIR = os.path.join(basedir, 'uploads', 'relatorios')
+AUDITADOS_RECEBIDOS_DIR = os.path.join(basedir, 'uploads', 'auditados', 'recebidos')
+AUDITADOS_ENVIADOS_DIR = os.path.join(basedir, 'uploads', 'auditados', 'enviados')  # Novo diretório para arquivos enviados
 
-# Criar pastas no Google Drive
-folders = {
-    'plano_de_auditoria': create_drive_folder(service, 'Plano de Auditoria'),
-    'pedido_de_informacao': create_drive_folder(service, 'Pedido de Informação'),
-    'relatorios': create_drive_folder(service, 'Relatórios'),
-    'auditados_recebidos': create_drive_folder(service, 'Auditados Recebidos'),
-    'auditados_enviados': create_drive_folder(service, 'Auditados Enviados'),
-    'raint': create_drive_folder(service, 'RAINT'),
-    'paint': create_drive_folder(service, 'PAINT'),
-}
+# Criação das pastas, se não existirem
+os.makedirs(PLANO_AUDITORIA_DIR, exist_ok=True)
+os.makedirs(PEDIDO_INFORMACAO, exist_ok=True)
+os.makedirs(UPLOADS_DIR, exist_ok=True)
+os.makedirs(AUDITADOS_RECEBIDOS_DIR, exist_ok=True)
+os.makedirs(AUDITADOS_ENVIADOS_DIR, exist_ok=True)  # Criar a pasta de enviados se não existir
 
-# Configuração das pastas no Google Drive
+# Adiciona as configurações ao app.config
+app.config['PLANO_AUDITORIA_DIR'] = PLANO_AUDITORIA_DIR
+app.config['PEDIDO_INFORMACAO'] = PEDIDO_INFORMACAO
+app.config['UPLOADS_DIR'] = UPLOADS_DIR
+app.config['AUDITADOS_RECEBIDOS_DIR'] = AUDITADOS_RECEBIDOS_DIR
+app.config['AUDITADOS_ENVIADOS_DIR'] = AUDITADOS_ENVIADOS_DIR  # Configuração para enviados
 
-# Configuração das pastas no Google Drive (remova a inicialização duplicada de app)
-app.config['PLANO_AUDITORIA_DIR'] = folders['plano_de_auditoria']
-app.config['PEDIDO_INFORMACAO'] = folders['pedido_de_informacao']
-app.config['UPLOADS_DIR'] = folders['relatorios']
-app.config['AUDITADOS_RECEBIDOS_DIR'] = folders['auditados_recebidos']
-app.config['AUDITADOS_ENVIADOS_DIR'] = folders['auditados_enviados']
-app.config['RAINT_DIR'] = folders['raint']
-app.config['PAINT_DIR'] = folders['paint']
-
-
-#-----------------------------------------------------------------------------------------------------------------------------#
-#                                                  TABELAS E CONFIGURAÇÃO                                                     #
-#-----------------------------------------------------------------------------------------------------------------------------#
 
 # Modelo da tabela Relatórios
 class Relatorio(db.Model):
@@ -189,14 +163,14 @@ class Resposta(db.Model):
     __tablename__ = 'respostas'
 
     id = db.Column(db.Integer, primary_key=True)
-    documento_id = db.Column(db.Integer, db.ForeignKey('documentos.id', ondelete='CASCADE'), nullable=False)
+    documento_id = db.Column(db.Integer, db.ForeignKey('documentos.id'), nullable=False)
     texto_resposta = db.Column(db.Text, nullable=True)
     arquivo_resposta = db.Column(db.String(120), nullable=True)
     data_envio = db.Column(db.DateTime, default=datetime.utcnow)
     secretaria = db.Column(db.String(100))  # Nova coluna para armazenar a secretaria associada
 
     # Relacionamento com o modelo Documento
-    documento = db.relationship('Documento', backref=db.backref('respostas', lazy=True, cascade="all, delete"))
+    documento = db.relationship('Documento', backref=db.backref('respostas', lazy=True))
     
 #----------------------------------------------------------------------------------------------------------------#
 #                                                    login                                                       #
@@ -401,49 +375,20 @@ def meus_relatorios():
 def visualizar_relatorio(filename):
     if 'logged_in' not in session:
         return redirect(url_for('login'))
-
-    try:
-        # Verificar se o arquivo existe no Google Drive
-        query = f"name = '{filename}' and '{UPLOADS_DIR}' in parents"
-        results = service.files().list(q=query, fields="files(id, name)", pageSize=1).execute()
-        files = results.get('files', [])
-
-        if not files:
-            return "Arquivo não encontrado no Google Drive", 404
-
-        file_id = files[0]['id']
-        # Gerar link de visualização
-        file_url = f"https://drive.google.com/uc?id={file_id}&export=view"
-        return render_template('visualizar_relatorio.html', filename=filename, file_url=file_url)
-    except Exception as e:
-        return f"Erro ao acessar o Google Drive: {str(e)}", 500
-
+    
+    file_path = os.path.join(UPLOADS_DIR, filename)
+    if not os.path.isfile(file_path):
+        return "Arquivo não encontrado", 404
+    
+    return render_template('visualizar_relatorio.html', filename=filename)
 
 # Rota para servir o arquivo PDF
 @app.route('/uploads/relatorios/<filename>')
 def serve_file(filename):
     if 'logged_in' not in session:
         return redirect(url_for('login'))
-
-    try:
-        # Buscar o arquivo no Google Drive
-        query = f"name = '{filename}' and '{UPLOADS_DIR}' in parents"
-        results = service.files().list(q=query, fields="files(id, name)", pageSize=1).execute()
-        files = results.get('files', [])
-
-        if not files:
-            return "Arquivo não encontrado no Google Drive", 404
-
-        file_id = files[0]['id']
-
-        # Fazer download do arquivo
-        request = service.files().get_media(fileId=file_id)
-        response = make_response(request.execute())
-        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
-        return response
-    except Exception as e:
-        return f"Erro ao acessar o Google Drive: {str(e)}", 500
-
+    
+    return send_from_directory(UPLOADS_DIR, filename)
 
 # Página para editar relatórios
 @app.route('/editar/<int:id>', methods=['GET', 'POST'])
@@ -477,6 +422,16 @@ def editar_relatorio(id):
     return render_template('editar_meus_relatorios.html', relatorio=relatorio)
 
 # Página para criar novos relatórios
+# Cria o diretório se não existir
+if not os.path.exists(UPLOADS_DIR):
+    os.makedirs(UPLOADS_DIR)
+
+# Página para criar novos relatórios
+UPLOADS_DIR = 'C:/Users/erina/Downloads/auditoria_interna/uploads/relatorios'
+
+# Cria o diretório se não existir
+if not os.path.exists(UPLOADS_DIR):
+    os.makedirs(UPLOADS_DIR)
 
 @app.route('/novo-relatorio', methods=['GET', 'POST'])
 def novo_relatorio():
@@ -834,139 +789,94 @@ def documentos():
         return redirect(url_for('login'))
     return render_template('documentos.html')
 
+# Configurações para RAINT
+UPLOAD_FOLDER_RAINT = os.path.join(app.root_path, 'uploads', 'RAINT')
+app.config['UPLOAD_FOLDER_RAINT'] = UPLOAD_FOLDER_RAINT
 
+# Verifique se o diretório existe, caso contrário, crie-o
+if not os.path.exists(UPLOAD_FOLDER_RAINT):
+    os.makedirs(UPLOAD_FOLDER_RAINT)
+
+    
 # Rota para visualizar o RAINT
 @app.route('/raint')
 def visualizar_raint():
-    try:
-        # Listar arquivos na pasta RAINT
-        query = f"'{app.config['RAINT_DIR']}' in parents and mimeType='application/pdf'"
-        results = service.files().list(q=query, fields="files(id, name, modifiedTime)").execute()
-        files = results.get('files', [])
+    directory = app.config['UPLOAD_FOLDER_RAINT']
+    
+    # Listar arquivos e pegar o mais recente
+    files = [f for f in os.listdir(directory) if f.endswith('.pdf')]
+    if not files:
+        return render_template('visualizar_raint.html', filename=None)  # Caso não haja arquivos
 
-        if not files:
-            return render_template('visualizar_raint.html', filename=None)
-
-        # Selecionar o arquivo mais recente
-        latest_file = max(files, key=lambda f: f['modifiedTime'])
-        file_url = f"https://drive.google.com/uc?id={latest_file['id']}&export=view"
-
-        return render_template('visualizar_raint.html', filename=latest_file['name'], file_url=file_url)
-    except Exception as e:
-        flash(f"Erro ao acessar o Google Drive: {str(e)}", "danger")
-        return render_template('visualizar_raint.html', filename=None)
+    latest_file = max(files, key=lambda f: os.path.getmtime(os.path.join(directory, f)))
+    return render_template('visualizar_raint.html', filename=latest_file)
 
 
 # Rota para servir os arquivos PDF do RAINT
-@app.route('/uploads/RAINT/<filename>')
+@app.route('/uploads/RAINT/<path:filename>')
 def serve_raint_pdf(filename):
-    try:
-        # Buscar o arquivo no Google Drive
-        query = f"name = '{filename}' and '{app.config['RAINT_DIR']}' in parents"
-        results = service.files().list(q=query, fields="files(id, name)").execute()
-        files = results.get('files', [])
-
-        if not files:
-            return "Arquivo não encontrado", 404
-
-        file_id = files[0]['id']
-        request = service.files().get_media(fileId=file_id)
-        response = make_response(request.execute())
-        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
-        return response
-    except Exception as e:
-        return f"Erro ao acessar o Google Drive: {str(e)}", 500
+    return send_from_directory(app.config['UPLOAD_FOLDER_RAINT'], filename)
 
 
-# Rota para upload de arquivos RAINT
+# Rota para upload de arquivos
 @app.route('/upload_raint', methods=['POST'])
 def upload_raint():
     if 'file' not in request.files:
-        flash('Nenhum arquivo foi enviado.', 'danger')
+        flash('Nenhum arquivo foi enviado.')
         return redirect(url_for('visualizar_raint'))
 
     file = request.files['file']
+
     if file.filename == '':
-        flash('Nenhum arquivo selecionado.', 'danger')
+        flash('Nenhum arquivo selecionado.')
         return redirect(url_for('visualizar_raint'))
 
-    try:
-        # Upload para o Google Drive
-        file_metadata = {'name': file.filename, 'parents': [app.config['RAINT_DIR']]}
-        media = MediaFileUpload(file.stream, mimetype='application/pdf')
-        service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-        flash('Arquivo enviado com sucesso!', 'success')
-    except Exception as e:
-        flash(f"Erro ao enviar o arquivo: {str(e)}", 'danger')
-
+    # Salvar o arquivo
+    file.save(os.path.join(app.config['UPLOAD_FOLDER_RAINT'], file.filename))
+    flash('Arquivo enviado com sucesso!')
+    
     return redirect(url_for('visualizar_raint'))
 
+    
+# Configurações para PAINT
+UPLOAD_FOLDER_PAINT = os.path.join(app.root_path, 'uploads', 'PAINT')
+app.config['UPLOAD_FOLDER_PAINT'] = UPLOAD_FOLDER_PAINT
 
 # Rota para visualizar o PAINT
 @app.route('/paint')
 def visualizar_paint():
-    try:
-        # Listar arquivos na pasta PAINT
-        query = f"'{app.config['PAINT_DIR']}' in parents and mimeType='application/pdf'"
-        results = service.files().list(q=query, fields="files(id, name, modifiedTime)").execute()
-        files = results.get('files', [])
+    directory = UPLOAD_FOLDER_PAINT
+    # Listar arquivos e pegar o mais recente
+    files = [f for f in os.listdir(directory) if f.endswith('.pdf')]
+    if not files:
+        return render_template('visualizar_paint.html', filename=None)  # Caso não haja arquivos
 
-        if not files:
-            return render_template('visualizar_paint.html', filename=None)
-
-        # Selecionar o arquivo mais recente
-        latest_file = max(files, key=lambda f: f['modifiedTime'])
-        file_url = f"https://drive.google.com/uc?id={latest_file['id']}&export=view"
-
-        return render_template('visualizar_paint.html', filename=latest_file['name'], file_url=file_url)
-    except Exception as e:
-        flash(f"Erro ao acessar o Google Drive: {str(e)}", "danger")
-        return render_template('visualizar_paint.html', filename=None)
-
+    latest_file = max(files, key=lambda f: os.path.getmtime(os.path.join(directory, f)))
+    return render_template('visualizar_paint.html', filename=latest_file)
 
 # Rota para servir os arquivos PDF do PAINT
-@app.route('/uploads/PAINT/<filename>')
+@app.route('/uploads/PAINT/<path:filename>')
 def serve_paint_pdf(filename):
-    try:
-        # Buscar o arquivo no Google Drive
-        query = f"name = '{filename}' and '{app.config['PAINT_DIR']}' in parents"
-        results = service.files().list(q=query, fields="files(id, name)").execute()
-        files = results.get('files', [])
-
-        if not files:
-            return "Arquivo não encontrado", 404
-
-        file_id = files[0]['id']
-        request = service.files().get_media(fileId=file_id)
-        response = make_response(request.execute())
-        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
-        return response
-    except Exception as e:
-        return f"Erro ao acessar o Google Drive: {str(e)}", 500
+    return send_from_directory(UPLOAD_FOLDER_PAINT, filename)
 
 # Rota para upload de arquivos PAINT
 @app.route('/upload_paint', methods=['POST'])
 def upload_paint():
     if 'file' not in request.files:
-        flash('Nenhum arquivo foi enviado.', 'danger')
+        flash('Nenhum arquivo foi enviado.')
         return redirect(url_for('visualizar_paint'))
 
     file = request.files['file']
+
     if file.filename == '':
-        flash('Nenhum arquivo selecionado.', 'danger')
+        flash('Nenhum arquivo selecionado.')
         return redirect(url_for('visualizar_paint'))
 
-    try:
-        # Upload para o Google Drive
-        file_metadata = {'name': file.filename, 'parents': [app.config['PAINT_DIR']]}
-        media = MediaFileUpload(file.stream, mimetype='application/pdf')
-        service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-        flash('Arquivo enviado com sucesso!', 'success')
-    except Exception as e:
-        flash(f"Erro ao enviar o arquivo: {str(e)}", 'danger')
-
+    # Salvar o arquivo
+    file.save(os.path.join(app.config['UPLOAD_FOLDER_PAINT'], file.filename))
+    flash('Arquivo enviado com sucesso!')
+    
     return redirect(url_for('visualizar_paint'))
-
 
 @app.route('/visualizar_manual')
 def visualizar_manual():
@@ -1040,16 +950,11 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 #                                                  Rota para Dashboard                                                  #
 #-----------------------------------------------------------------------------------------------------------------------#
 
+
 def obter_auditorias_por_ano(ano=None):
     query = db.session.query(Auditoria)
     if ano:
         query = query.filter(Auditoria.data.like(f"{ano}-%"))  # Assumindo que `data` está no formato 'YYYY-MM-DD'
-    return query.all()
-
-def obter_relatorios_por_ano(ano=None):
-    query = db.session.query(Relatorio)
-    if ano:
-        query = query.filter(Relatorio.data.like(f"{ano}-%"))  # Mesmo formato de data
     return query.all()
 
 @app.route('/dashboard', methods=['GET'])
@@ -1057,17 +962,20 @@ def dashboard():
     ano = request.args.get('ano')  # Obter o ano do filtro, se fornecido
 
     auditorias = obter_auditorias_por_ano(ano)
-    relatorios = obter_relatorios_por_ano(ano)
     
     # Contagem de status das auditorias
     status_counts = {'Concluído': 0, 'Em andamento': 0, 'Suspenso': 0}
-    for auditoria in auditorias:
-        status_counts[auditoria.status] += 1
- 
-    # Contagem de tipos de relatórios
     tipo_counts = {'Ordinário': 0, 'Extraordinário': 0}
-    for relatorio in relatorios:
-        tipo_counts[relatorio.tipo] += 1
+    
+    for auditoria in auditorias:
+        # Contagem do status da auditoria
+        status_counts[auditoria.status] += 1
+        
+        # Verificação do tipo de auditoria com base no sufixo 'O' ou 'E' no campo 'Nº da Auditoria'
+        if auditoria.numero_auditoria.endswith('- O'):
+            tipo_counts['Ordinário'] += 1
+        elif auditoria.numero_auditoria.endswith('- E'):
+            tipo_counts['Extraordinário'] += 1
 
     # Retorna os anos disponíveis para o filtro (baseados nos registros existentes)
     anos_disponiveis = db.session.query(db.func.strftime('%Y', Auditoria.data)).distinct().all()
@@ -1078,6 +986,7 @@ def dashboard():
                            tipo_counts=tipo_counts, 
                            anos_disponiveis=anos_disponiveis, 
                            ano_selecionado=ano)
+
     
 #-----------------------------------------------------------------------------------------------------------------------#
 #                                              Rota para Pedido de Informação                                           #
@@ -1223,12 +1132,7 @@ def visualizar_pedido(id):
 def cgm_auditoria():
     # Obter todas as auditorias do banco de dados
     auditorias = Auditoria.query.all()  # Ajuste conforme seu ORM
-
-    # Obter uma lista única de anos das auditorias (supondo que há uma data associada)
-    anos = set(auditoria.data.year for auditoria in auditorias)  # Supondo que `data` seja um campo de data
-
-    return render_template('cgm/Auditorias.html', auditorias=auditorias, anos=sorted(anos))
-
+    return render_template('cgm/Auditorias.html', auditorias=auditorias)
     
 #----------------------------------------------------------------------------------------------------------------------#
 @app.route('/meus-relatorios-cgm', methods=['GET', 'POST'])
@@ -1337,7 +1241,6 @@ def visualizar_raint_cgm():
     directory = os.path.join(app.root_path, 'uploads', 'RAINT')
     # Listar arquivos e pegar o mais recente
     files = [f for f in os.listdir(directory) if f.endswith('.pdf')]
-    
     if not files:
         return render_template('cgm/visualizar_raint.html', ano=None)  # Caso não haja arquivos
 
@@ -1483,17 +1386,20 @@ def dashboard_cgm():
     ano = request.args.get('ano')  # Obter o ano do filtro, se fornecido
 
     auditorias = obter_auditorias_por_ano(ano)
-    relatorios = obter_relatorios_por_ano(ano)
-
+    
     # Contagem de status das auditorias
     status_counts = {'Concluído': 0, 'Em andamento': 0, 'Suspenso': 0}
-    for auditoria in auditorias:
-        status_counts[auditoria.status] += 1
-
-    # Contagem de tipos de relatórios
     tipo_counts = {'Ordinário': 0, 'Extraordinário': 0}
-    for relatorio in relatorios:
-        tipo_counts[relatorio.tipo] += 1
+    
+    for auditoria in auditorias:
+        # Contagem do status da auditoria
+        status_counts[auditoria.status] += 1
+        
+        # Verificação do tipo de auditoria com base no sufixo 'O' ou 'E' no campo 'Nº da Auditoria'
+        if auditoria.numero_auditoria.endswith('- O'):
+            tipo_counts['Ordinário'] += 1
+        elif auditoria.numero_auditoria.endswith('- E'):
+            tipo_counts['Extraordinário'] += 1
 
     # Retorna os anos disponíveis para o filtro (baseados nos registros existentes)
     anos_disponiveis = db.session.query(db.func.strftime('%Y', Auditoria.data)).distinct().all()
@@ -1643,6 +1549,11 @@ def excluir_documento(id):
     else:
         flash('Documento não encontrado.')
     return redirect(url_for('anexar_documento'))
+
+@app.route('/uploads/auditados/recebidos/<path:filename>', methods=['GET'])
+def send_file(filename):
+    return send_from_directory(app.config['AUDITADOS_RECEBIDOS_DIR'], filename)
+
 
 #----------------------------------------------------------------------------------------------------------------------#
 #-----------------------------------------------------Auditado---------------------------------------------------------#
@@ -2031,5 +1942,4 @@ def logout_user():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Cria as tabelas no banco de dados
-    app.run(host='0.0.0.0', port=5000, debug=True)
-
+    app.run(debug=True)
