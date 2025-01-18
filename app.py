@@ -793,32 +793,61 @@ def documentos():
 UPLOAD_FOLDER_RAINT = os.path.join(app.root_path, 'uploads', 'RAINT')
 app.config['UPLOAD_FOLDER_RAINT'] = UPLOAD_FOLDER_RAINT
 
+<<<<<<< HEAD
 # Verifique se o diretório existe, caso contrário, crie-o
 if not os.path.exists(UPLOAD_FOLDER_RAINT):
     os.makedirs(UPLOAD_FOLDER_RAINT)
 
     
+=======
+>>>>>>> 224999b4a1f6da30ba5fe68a745396600dcb0136
 # Rota para visualizar o RAINT
 @app.route('/raint')
 def visualizar_raint():
     directory = app.config['UPLOAD_FOLDER_RAINT']
     
+<<<<<<< HEAD
     # Listar arquivos e pegar o mais recente
     files = [f for f in os.listdir(directory) if f.endswith('.pdf')]
     if not files:
         return render_template('visualizar_raint.html', filename=None)  # Caso não haja arquivos
+=======
+    # Listar arquivos .pdf (caso o nome do arquivo seja .PDF ou .pdf)
+    files = [f for f in os.listdir(directory) if f.lower().endswith('.pdf')]
+    
+    # Log para verificar a listagem dos arquivos
+    print(f"Arquivos encontrados: {files}")
+    
+    if not files:
+        return render_template('visualizar_raint.html', filename=None)  # Passar None para o caso sem arquivos
+>>>>>>> 224999b4a1f6da30ba5fe68a745396600dcb0136
 
+    # Pega o arquivo mais recente
     latest_file = max(files, key=lambda f: os.path.getmtime(os.path.join(directory, f)))
+<<<<<<< HEAD
     return render_template('visualizar_raint.html', filename=latest_file)
 
+=======
+    print(f"Arquivo mais recente: {latest_file}")  # Log para verificar o arquivo encontrado
+    
+    return render_template('visualizar_raint.html', filename=latest_file)
+>>>>>>> 224999b4a1f6da30ba5fe68a745396600dcb0136
 
 # Rota para servir os arquivos PDF do RAINT
 @app.route('/uploads/RAINT/<path:filename>')
 def serve_raint_pdf(filename):
+<<<<<<< HEAD
     return send_from_directory(app.config['UPLOAD_FOLDER_RAINT'], filename)
 
 
 # Rota para upload de arquivos
+=======
+    directory = app.config['UPLOAD_FOLDER_RAINT']
+    print(f"Servindo o arquivo: {filename}")  # Log para verificar o arquivo sendo servido
+    return send_from_directory(directory, filename)
+
+# Rota para upload de arquivos RAINT
+>>>>>>> 224999b4a1f6da30ba5fe68a745396600dcb0136
 @app.route('/upload_raint', methods=['POST'])
 def upload_raint():
     if 'file' not in request.files:
@@ -835,9 +864,13 @@ def upload_raint():
     file.save(os.path.join(app.config['UPLOAD_FOLDER_RAINT'], file.filename))
     flash('Arquivo enviado com sucesso!')
     
+<<<<<<< HEAD
     return redirect(url_for('visualizar_raint'))
 
     
+=======
+    return redirect(url_for('visualizar_raint'))    
+>>>>>>> 224999b4a1f6da30ba5fe68a745396600dcb0136
 # Configurações para PAINT
 UPLOAD_FOLDER_PAINT = os.path.join(app.root_path, 'uploads', 'PAINT')
 app.config['UPLOAD_FOLDER_PAINT'] = UPLOAD_FOLDER_PAINT
@@ -950,11 +983,24 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 #                                                  Rota para Dashboard                                                  #
 #-----------------------------------------------------------------------------------------------------------------------#
 
+<<<<<<< HEAD
 
 def obter_auditorias_por_ano(ano=None):
     query = db.session.query(Auditoria)
     if ano:
         query = query.filter(Auditoria.data.like(f"{ano}-%"))  # Assumindo que `data` está no formato 'YYYY-MM-DD'
+=======
+def obter_auditorias_por_ano(ano=None):
+    query = db.session.query(Auditoria)
+    if ano:
+        query = query.filter(Auditoria.data.like(f"{ano}-%"))  # Assumindo que `data` está no formato 'YYYY-MM-DD'
+    return query.all()
+
+def obter_relatorios_por_ano(ano=None):
+    query = db.session.query(Relatorio)
+    if ano:
+        query = query.filter(Relatorio.data.like(f"{ano}-%"))  # Mesmo formato de data
+>>>>>>> 224999b4a1f6da30ba5fe68a745396600dcb0136
     return query.all()
 
 @app.route('/dashboard', methods=['GET'])
@@ -962,6 +1008,10 @@ def dashboard():
     ano = request.args.get('ano')  # Obter o ano do filtro, se fornecido
 
     auditorias = obter_auditorias_por_ano(ano)
+<<<<<<< HEAD
+=======
+    relatorios = obter_relatorios_por_ano(ano)
+>>>>>>> 224999b4a1f6da30ba5fe68a745396600dcb0136
     
     # Contagem de status das auditorias
     status_counts = {'Concluído': 0, 'Em andamento': 0, 'Suspenso': 0}
@@ -987,6 +1037,18 @@ def dashboard():
                            anos_disponiveis=anos_disponiveis, 
                            ano_selecionado=ano)
 
+<<<<<<< HEAD
+=======
+    # Retorna os anos disponíveis para o filtro (baseados nos registros existentes)
+    anos_disponiveis = db.session.query(db.func.strftime('%Y', Auditoria.data)).distinct().all()
+    anos_disponiveis = [ano[0] for ano in anos_disponiveis]
+
+    return render_template('Dashboard.html', 
+                           status_counts=status_counts, 
+                           tipo_counts=tipo_counts, 
+                           anos_disponiveis=anos_disponiveis, 
+                           ano_selecionado=ano)
+>>>>>>> 224999b4a1f6da30ba5fe68a745396600dcb0136
     
 #-----------------------------------------------------------------------------------------------------------------------#
 #                                              Rota para Pedido de Informação                                           #
@@ -1132,7 +1194,12 @@ def visualizar_pedido(id):
 def cgm_auditoria():
     # Obter todas as auditorias do banco de dados
     auditorias = Auditoria.query.all()  # Ajuste conforme seu ORM
-    return render_template('cgm/Auditorias.html', auditorias=auditorias)
+
+    # Obter uma lista única de anos das auditorias (supondo que há uma data associada)
+    anos = set(auditoria.data.year for auditoria in auditorias)  # Supondo que `data` seja um campo de data
+
+    return render_template('cgm/Auditorias.html', auditorias=auditorias, anos=sorted(anos))
+
     
 #----------------------------------------------------------------------------------------------------------------------#
 @app.route('/meus-relatorios-cgm', methods=['GET', 'POST'])
@@ -1241,6 +1308,7 @@ def visualizar_raint_cgm():
     directory = os.path.join(app.root_path, 'uploads', 'RAINT')
     # Listar arquivos e pegar o mais recente
     files = [f for f in os.listdir(directory) if f.endswith('.pdf')]
+    
     if not files:
         return render_template('cgm/visualizar_raint.html', ano=None)  # Caso não haja arquivos
 
@@ -1386,7 +1454,12 @@ def dashboard_cgm():
     ano = request.args.get('ano')  # Obter o ano do filtro, se fornecido
 
     auditorias = obter_auditorias_por_ano(ano)
+<<<<<<< HEAD
     
+=======
+    relatorios = obter_relatorios_por_ano(ano)
+
+>>>>>>> 224999b4a1f6da30ba5fe68a745396600dcb0136
     # Contagem de status das auditorias
     status_counts = {'Concluído': 0, 'Em andamento': 0, 'Suspenso': 0}
     tipo_counts = {'Ordinário': 0, 'Extraordinário': 0}
@@ -1413,6 +1486,21 @@ def dashboard_cgm():
         ano_selecionado=ano
     )
 
+<<<<<<< HEAD
+=======
+    # Retorna os anos disponíveis para o filtro (baseados nos registros existentes)
+    anos_disponiveis = db.session.query(db.func.strftime('%Y', Auditoria.data)).distinct().all()
+    anos_disponiveis = [ano[0] for ano in anos_disponiveis]
+
+    return render_template(
+        'cgm/Dashboard.html',
+        status_counts=status_counts,
+        tipo_counts=tipo_counts,
+        anos_disponiveis=anos_disponiveis,
+        ano_selecionado=ano
+    )
+
+>>>>>>> 224999b4a1f6da30ba5fe68a745396600dcb0136
 
 #----------------------------------------------------------------------------------------------------------------------#
 #                                                Rotas Cadastro de Auditado                                            #
