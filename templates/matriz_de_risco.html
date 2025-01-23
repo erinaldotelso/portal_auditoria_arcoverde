@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Matriz de Risco - Auditoria Interna{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Cadastro de Risco -->
+    <div class="form-section mb-4">
+        <h4>Cadastro de Risco</h4>
+        <form id="riskForm" method="POST" action="{{ url_for('cadastrar_risco') }}">
+            <div class="form-group">
+                <label for="descricao">Descrição do Risco</label>
+                <input type="text" class="form-control" id="descricao" name="descricao" required>
+            </div>
+            <div class="form-group">
+                <label for="probabilidade">Probabilidade</label>
+                <select class="form-control" id="probabilidade" name="probabilidade" required>
+                    <option value="Alta">Alta</option>
+                    <option value="Média">Média</option>
+                    <option value="Baixa">Baixa</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="impacto">Impacto</label>
+                <select class="form-control" id="impacto" name="impacto" required>
+                    <option value="Grave">Grave</option>
+                    <option value="Moderado">Moderado</option>
+                    <option value="Baixo">Baixo</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="nivel_risco">Nível de Risco</label>
+                <input type="text" class="form-control" id="nivel_risco" name="nivel_risco" readonly>
+            </div>
+            <div class="form-group">
+                <label for="data_cadastro">Data do Cadastro</label>
+                <input type="date" class="form-control" id="data_cadastro" name="data_cadastro" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Cadastrar Risco</button>
+        </form>
+    </div>
+
+    <!-- Cadastro de Ação Recomendada -->
+    <div class="form-section mb-4">
+        <h4>Cadastro de Ação Recomendada</h4>
+        <form id="actionForm" method="POST" action="{{ url_for('cadastrar_acao') }}">
+            <div class="form-group">
+                <label for="descricao_acao">Descrição da Ação Recomendada</label>
+                <input type="text" class="form-control" id="descricao_acao" name="descricao_acao" required>
+            </div>
+            <div class="form-group">
+                <label for="responsavel">Responsável</label>
+                <input type="text" class="form-control" id="responsavel" name="responsavel" required>
+            </div>
+            <div class="form-group">
+                <label for="prazo_acao">Prazo</label>
+                <input type="date" class="form-control" id="prazo_acao" name="prazo_acao" required>
+            </div>
+            <div class="form-group">
+                <label for="risco">Risco Associado</label>
+                <select class="form-control" id="risco" name="risco" required>
+                    {% for risco in riscos %}
+                        <option value="{{ risco.id }}">{{ risco.descricao }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Cadastrar Ação Recomendada</button>
+        </form>
+    </div>
+
+    <!-- Tabelas -->
+    <div class="form-section mb-4">
+        <h4>Riscos Cadastrados</h4>
+        <table class="table table-bordered">
+            <thead class="bg-dark text-white">
+                <tr>
+                    <th>Descrição</th>
+                    <th>Probabilidade</th>
+                    <th>Impacto</th>
+                    <th>Nível de Risco</th>
+                    <th>Data do Cadastro</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for risco in riscos %}
+                <tr>
+                    <td>{{ risco.descricao }}</td>
+                    <td>{{ risco.probabilidade }}</td>
+                    <td>{{ risco.impacto }}</td>
+                    <td>{{ risco.nivel_risco }}</td>
+                    <td>{{ risco.data_cadastro }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="form-section mb-4">
+        <h4>Ações Recomendadas Cadastradas</h4>
+        <table class="table table-bordered">
+            <thead class="bg-dark text-white">
+                <tr>
+                    <th>Descrição</th>
+                    <th>Responsável</th>
+                    <th>Prazo</th>
+                    <th>Risco</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for acao in actions %}
+                <tr>
+                    <td>{{ acao.descricao_acao }}</td>
+                    <td>{{ acao.responsavel }}</td>
+                    <td>{{ acao.prazo }}</td>
+                    <td>{{ acao.risco.descricao }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="form-section mb-4">
+        <h4>Matriz de Risco</h4>
+        <table class="table table-bordered">
+            <thead class="bg-dark text-white">
+                <tr>
+                    <th>Risco</th>
+                    <th>Probabilidade</th>
+                    <th>Impacto</th>
+                    <th>Ação Recomendada</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for risco in matriz_risco %}
+                <tr>
+                    <td>{{ risco.descricao }}</td>
+                    <td>{{ risco.probabilidade }}</td>
+                    <td>{{ risco.impacto }}</td>
+                    <td>{{ risco.acao_recomendada }}</td>
+                    <td>{{ risco.status }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Função para calcular o Nível de Risco automaticamente
+function calculateRiskLevel() {
+    const probabilidade = document.getElementById("probabilidade").value;
+    const impacto = document.getElementById("impacto").value;
+    let nivelRisco = '';
+
+    if (probabilidade === 'Alta' && impacto === 'Grave') {
+        nivelRisco = 'Alto';
+    } else if (probabilidade === 'Alta' && impacto === 'Moderado') {
+        nivelRisco = 'Alto';
+    } else if (probabilidade === 'Alta' && impacto === 'Baixo') {
+        nivelRisco = 'Médio';
+    } else if (probabilidade === 'Média' && impacto === 'Grave') {
+        nivelRisco = 'Alto';
+    } else if (probabilidade === 'Média' && impacto === 'Moderado') {
+        nivelRisco = 'Médio';
+    } else if (probabilidade === 'Média' && impacto === 'Baixo') {
+        nivelRisco = 'Médio';
+    } else if (probabilidade === 'Baixa' && impacto === 'Grave') {
+        nivelRisco = 'Médio';
+    } else if (probabilidade === 'Baixa' && impacto === 'Moderado') {
+        nivelRisco = 'Baixo';
+    } else if (probabilidade === 'Baixa' && impacto === 'Baixo') {
+        nivelRisco = 'Baixo';
+    }
+
+    document.getElementById("nivel_risco").value = nivelRisco;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    // Calcular o nível de risco quando a página é carregada (se valores já estiverem definidos)
+    calculateRiskLevel();
+
+    // Adicionar os eventos de mudança para probabilidade e impacto
+    document.getElementById("probabilidade").addEventListener("change", calculateRiskLevel);
+    document.getElementById("impacto").addEventListener("change", calculateRiskLevel);
+});
+</script>
+{% endblock %}
